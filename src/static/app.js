@@ -20,11 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
-        // Build participants HTML
+        // Build participants HTML (render list items with remove buttons)
         let participantsHtml = "";
         if (Array.isArray(details.participants) && details.participants.length > 0) {
           const items = details.participants
-            .map((p) => `<li class="participant-item">${escapeHtml(String(p))}</li>`)
+            .map((p) =>
+              `<li class="participant-item"><span class="participant-email">${escapeHtml(String(p))}</span><button class="participant-remove" data-activity="${escapeHtml(name)}" data-email="${escapeHtml(String(p))}" title="Unregister">✖</button></li>`
+            )
             .join("");
           participantsHtml = `<ul class="participants-list">${items}</ul>`;
         } else {
@@ -47,6 +49,44 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         activitiesList.appendChild(activityCard);
+
+          // Attach click handlers for remove buttons (delegation not used because elements are just created)
+          const removeButtons = activityCard.querySelectorAll('.participant-remove');
+          removeButtons.forEach((btn) => {
+            btn.addEventListener('click', async (e) => {
+              const activityName = btn.getAttribute('data-activity');
+              const email = btn.getAttribute('data-email');
+
+              if (!confirm(`Unregister ${email} from ${activityName}?`)) return;
+
+              try {
+                const res = await fetch(
+                  `/activities/${encodeURIComponent(activityName)}/unregister?email=${encodeURIComponent(email)}`,
+                  { method: 'DELETE' }
+                );
+
+                const json = await res.json();
+                if (res.ok) {
+                  // Remove the participant item from the DOM
+                  const li = btn.closest('li.participant-item');
+                  if (li) li.remove();
+
+                  // Update count badge
+                  const countBadge = activityCard.querySelector('.participants-count');
+                  if (countBadge) {
+                    const current = parseInt(countBadge.textContent || '0', 10);
+                    countBadge.textContent = Math.max(0, current - 1);
+                  }
+                } else {
+                  console.error('Failed to unregister:', json);
+                  alert(json.detail || 'Failed to unregister participant');
+                }
+              } catch (err) {
+                console.error('Error unregistering participant:', err);
+                alert('Error unregistering participant');
+              }
+            });
+          });
 
         // Add option to select dropdown
         const option = document.createElement("option");

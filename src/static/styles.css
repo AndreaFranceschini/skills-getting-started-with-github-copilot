@@ -100,8 +100,8 @@ section h3 {
 }
 
 .participants-list {
-  list-style: disc;
-  padding-left: 20px;
+  list-style: none; /* hide default bullets */
+  padding-left: 0;
   max-height: 90px; /* limit height for long lists */
   overflow: auto;
   margin: 0;
@@ -114,6 +114,27 @@ section h3 {
   border-radius: 6px;
   font-size: 14px;
   color: #222;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.participant-email {
+  word-break: break-all;
+}
+
+.participant-remove {
+  background: transparent;
+  border: none;
+  color: #b00020;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.participant-remove:hover {
+  background: rgba(176,0,32,0.08);
 }
 
 /* Small helper for empty state */
